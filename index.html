@@ -1,0 +1,793 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>元宝派 · 话题生成 Demo · Mock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    font-feature-settings: "cv11", "ss01", "ss03";
+    -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+    background: #FAFBFC; color: #1A1F2C; overflow: hidden;
+    letter-spacing: -0.005em;
+  }
+
+  /* ===== Stripe 紫主题（去 Claude 化）=====
+     主色:     #635BFF (Stripe purple)
+     强调金:   #FFB800 (丰富 marker，紫金高级搭配)
+     辅紫:     #8B85FF (浅紫 - hover/KPI 数字)
+     深紫:     #4F46E5 (按钮 hover / 强 accent)
+     衍生青:   #06B6D4 (避免衍生和主色撞紫)
+     共创红:   #F43F5E
+     事件蓝:   #2196F3
+     议题绿:   #10B981
+     底:       #FAFBFC / #F1F3F7 / #FFFFFF
+     文字:     #1A1F2C / #5A6378 / #8B94A8
+  */
+
+  /* 顶部栏 */
+  .topbar {
+    height: 64px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; background: #FFFFFF; border-bottom: 1px solid #E5E8EE;
+    box-shadow: 0 1px 0 rgba(26, 31, 44, 0.02);
+  }
+  .topbar .brand { font-size: 16px; font-weight: 700; color: #1A1F2C; letter-spacing: -0.01em; }
+  .topbar .brand .sub { color: #8B94A8; font-weight: 400; margin-left: 8px; font-size: 13px; }
+  .topbar .kpis { display: flex; gap: 10px; }
+  .kpi {
+    background: linear-gradient(135deg, #EEEDFF, #E4E1FF); padding: 8px 14px; border-radius: 10px;
+    font-size: 12px; color: #4338CA;
+    border: 1px solid #C7C2FF;
+    font-weight: 500;
+  }
+  .kpi b { color: #635BFF; font-size: 16px; margin-right: 4px; font-weight: 700; }
+  .kpi.kpi-skip {
+    background: linear-gradient(135deg, #F1F3F7, #FAFBFC);
+    border: 1px solid #D1D6E0;
+    color: #5A6378;
+  }
+  .kpi.kpi-skip b { color: #5A6378; }
+  .topbar .controls { display: flex; gap: 8px; align-items: center; }
+  .btn {
+    background: linear-gradient(135deg, #635BFF, #8B85FF); color: #fff; border: none; padding: 9px 18px;
+    border-radius: 8px; cursor: pointer; font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(99, 91, 255, 0.28);
+    transition: all 0.15s;
+    letter-spacing: -0.005em;
+  }
+  .btn.ghost { background: #FFFFFF; color: #1A1F2C; border: 1px solid #D1D6E0; box-shadow: none; }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(99, 91, 255, 0.4); }
+  .btn.ghost:hover { background: #F1F3F7; transform: none; box-shadow: none; }
+  select {
+    background: #FFFFFF; color: #1A1F2C; border: 1px solid #D1D6E0;
+    padding: 7px 12px; border-radius: 8px; font-size: 13px;
+    cursor: pointer;
+  }
+
+  /* 速度控制 */
+  .speed-ctrl {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #F1F3F7; padding: 4px 8px; border-radius: 8px;
+    border: 1px solid #E5E8EE;
+  }
+  .speed-btn {
+    background: transparent; color: #5A6378; border: none;
+    padding: 4px 10px; border-radius: 6px; cursor: pointer;
+    font-size: 12px; font-weight: 600; font-family: "JetBrains Mono", "SF Mono", monospace;
+  }
+  .speed-btn:hover { background: #FFFFFF; color: #1A1F2C; }
+  .speed-btn.active { background: #635BFF; color: #fff; }
+
+  /* 主体三栏 */
+  .layout { display: flex; height: calc(100% - 64px - 52px); }
+  .chat-panel {
+    flex: 1.3; background: #FAFBFC;
+    display: flex; flex-direction: column;
+    border-right: 1px solid #E5E8EE;
+  }
+  .chat-header {
+    padding: 14px 20px; background: #FFFFFF; border-bottom: 1px solid #E5E8EE;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .chat-title { font-size: 14px; color: #1A1F2C; font-weight: 600; }
+  .chat-title .meta { color: #8B94A8; font-size: 12px; margin-left: 8px; font-weight: 400; }
+  .chat-scroll { flex: 1; overflow-y: auto; padding: 20px 24px; scroll-behavior: smooth; }
+  .chat-scroll::-webkit-scrollbar { width: 6px; }
+  .chat-scroll::-webkit-scrollbar-thumb { background: #D1D6E0; border-radius: 3px; }
+
+  /* 日期分隔已隐藏 */
+  .day-divider { display: none; }
+
+  .silence {
+    text-align: center; margin: 14px 0; padding: 10px;
+    background: #F1F3F7; border: 1px dashed #B5BBC9;
+    border-radius: 8px; color: #5A6378; font-size: 12px; font-weight: 500;
+  }
+
+  /* 消息气泡（Figma 高保真风格） */
+  .msg {
+    display: flex; gap: 12px; margin-bottom: 16px;
+    animation: fadeInUp 0.35s ease-out;
+    align-items: flex-start;
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  /* 头像：圆形 + 渐变 + 内阴影 + 玻璃光泽 */
+  .avatar {
+    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 14px; font-weight: 600;
+    position: relative;
+    box-shadow:
+      0 2px 6px rgba(26, 31, 44, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25),
+      inset 0 -2px 4px rgba(0, 0, 0, 0.08);
+    border: 2px solid #FFFFFF;
+    overflow: hidden;
+    user-select: none;
+  }
+  /* 头像加微微高光层 */
+  .avatar::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.35), transparent 55%);
+    pointer-events: none;
+  }
+  .avatar .ava-emoji {
+    position: relative; z-index: 1;
+    font-size: 16px;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.15));
+  }
+  /* 字母类头像稍微缩小，更精致 */
+  .avatar .ava-text {
+    position: relative; z-index: 1;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
+  }
+  .msg-body { flex: 1; min-width: 0; }
+  .msg-meta {
+    font-size: 12px; color: #8B94A8; margin-bottom: 5px;
+    display: flex; align-items: baseline; gap: 8px;
+  }
+  .msg-meta .name {
+    color: #1A1F2C; font-weight: 600; font-size: 13px;
+    letter-spacing: -0.01em;
+  }
+  .msg-meta .time { color: #8B94A8; font-size: 11px; font-weight: 400; }
+  /* 气泡：圆角更大、无边、柔阴影、左上小尖角错觉 */
+  .bubble {
+    display: inline-block; max-width: 85%;
+    background: #FFFFFF;
+    padding: 11px 15px;
+    border-radius: 4px 14px 14px 14px;
+    color: #1A1F2C;
+    font-size: 14.5px;
+    line-height: 1.6;
+    word-break: break-word;
+    border: none;
+    box-shadow:
+      0 1px 2px rgba(26, 31, 44, 0.04),
+      0 4px 12px rgba(26, 31, 44, 0.04);
+    letter-spacing: -0.005em;
+  }
+  .msg.highlight .bubble {
+    background: linear-gradient(135deg, #EEEDFF, #E4E1FF);
+    box-shadow:
+      0 2px 4px rgba(99, 91, 255, 0.12),
+      0 6px 18px rgba(99, 91, 255, 0.10);
+  }
+  /* 机器人/元宝消息特殊样式 */
+  .msg.bot .bubble {
+    background: linear-gradient(135deg, #F1F3F7, #FAFBFC);
+    border: 1px dashed #D1D6E0;
+    color: #5A6378;
+    font-size: 13.5px;
+  }
+
+  /* 触发点（新建：Stripe 紫） */
+  .trigger-marker {
+    margin: 18px 0; padding: 13px 16px;
+    background: linear-gradient(90deg, #EEEDFF, #F8F7FF);
+    border-left: 4px solid #635BFF; border-radius: 8px;
+    color: #4338CA; font-size: 12px;
+    animation: pulseGlow 1.2s ease-out;
+    box-shadow: 0 2px 8px rgba(99, 91, 255, 0.08);
+  }
+  .trigger-marker .title { font-weight: 700; color: #635BFF; margin-bottom: 4px; font-size: 13px; letter-spacing: -0.01em; }
+  @keyframes pulseGlow {
+    0% { background: linear-gradient(90deg, #C7C2FF, #DCD9FF); }
+    100% { background: linear-gradient(90deg, #EEEDFF, #F8F7FF); }
+  }
+
+  /* 丰富：金色（紫金搭配） */
+  .enrich-marker {
+    margin: 14px 0; padding: 11px 14px;
+    background: linear-gradient(90deg, #FFF7E0, #FFFCF0);
+    border-left: 4px solid #FFB800;
+    border-radius: 8px; color: #8C6000; font-size: 12px;
+    box-shadow: 0 2px 6px rgba(255, 184, 0, 0.06);
+  }
+  .enrich-marker .title { font-weight: 700; color: #B28800; margin-bottom: 3px; font-size: 13px; letter-spacing: -0.01em; }
+  /* 衍生：青色（避免和主色撞紫） */
+  .derive-marker {
+    margin: 14px 0; padding: 11px 14px;
+    background: linear-gradient(90deg, #E0F7FA, #F0FCFD);
+    border-left: 4px solid #06B6D4;
+    border-radius: 8px; color: #0E7490; font-size: 12px;
+    box-shadow: 0 2px 6px rgba(6, 182, 212, 0.06);
+  }
+  .derive-marker .title { font-weight: 700; color: #06B6D4; margin-bottom: 3px; font-size: 13px; letter-spacing: -0.01em; }
+
+  /* 放弃/留池：中性灰（agent 克制信号） */
+  .skip-marker {
+    margin: 14px 0; padding: 11px 14px;
+    background: linear-gradient(90deg, #F1F3F7, #FAFBFC);
+    border-left: 4px solid #8B94A8;
+    border-radius: 8px; color: #5A6378; font-size: 12px;
+    box-shadow: 0 2px 6px rgba(139, 148, 168, 0.06);
+  }
+  .skip-marker .title { font-weight: 700; color: #5A6378; margin-bottom: 3px; font-size: 13px; letter-spacing: -0.01em; }
+  .skip-marker .skip-reason {
+    margin-top: 6px; padding: 6px 10px;
+    background: rgba(139, 148, 168, 0.08); border-radius: 4px;
+    font-size: 11px; color: #6B7280; font-style: italic;
+  }
+
+  /* 右侧话题栏 */
+  .topic-panel {
+    flex: 1; background: #F1F3F7;
+    display: flex; flex-direction: column;
+  }
+  .topic-header {
+    padding: 14px 20px; background: #FFFFFF; border-bottom: 1px solid #E5E8EE;
+    font-size: 14px; color: #1A1F2C; font-weight: 600;
+  }
+  .topic-list { flex: 1; overflow-y: auto; padding: 16px 20px; }
+  .topic-list::-webkit-scrollbar { width: 6px; }
+  .topic-list::-webkit-scrollbar-thumb { background: #D1D6E0; border-radius: 3px; }
+
+  .empty-hint {
+    color: #8B94A8; font-size: 12px; text-align: center; padding: 40px 16px;
+    font-style: italic;
+  }
+
+  .topic-card {
+    background: #FFFFFF; border-radius: 12px; padding: 16px;
+    margin-bottom: 14px; border: 1px solid #E5E8EE;
+    animation: flyIn 0.5s ease-out;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(26, 31, 44, 0.04);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .topic-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(26, 31, 44, 0.08); }
+  @keyframes flyIn {
+    from { opacity: 0; transform: translateX(20px) scale(0.95); }
+    to { opacity: 1; transform: translateX(0) scale(1); }
+  }
+  .topic-card .type-badge {
+    display: inline-block; background: #635BFF; color: #fff;
+    font-size: 11px; padding: 3px 10px; border-radius: 12px;
+    margin-bottom: 10px; font-weight: 600; letter-spacing: 0.3px;
+  }
+  /* 五类话题：用饱和但和谐的彩色（主色紫为指南，其他保留差异） */
+  .topic-card.type-指南 .type-badge { background: #635BFF; }
+  .topic-card.type-体验 .type-badge { background: #06B6D4; }
+  .topic-card.type-事件 .type-badge { background: #2196F3; }
+  .topic-card.type-共创 .type-badge { background: #F43F5E; }
+  .topic-card.type-议题 .type-badge { background: #10B981; }
+
+  .topic-card .title { font-size: 14px; font-weight: 700; color: #1A1F2C; margin-bottom: 6px; line-height: 1.45; }
+  .topic-card .summary { font-size: 12px; color: #5A6378; line-height: 1.7; }
+  .topic-card .meta {
+    font-size: 11px; color: #8B94A8; margin-top: 12px;
+    padding-top: 10px; border-top: 1px dashed #E5E8EE;
+    display: flex; justify-content: space-between;
+  }
+  .topic-card .reason-tag {
+    display: inline-block; background: #EEEDFF;
+    color: #4338CA; font-size: 10px; padding: 3px 8px; border-radius: 8px;
+    margin-top: 8px; font-weight: 500;
+  }
+  .topic-card.enriched { box-shadow: 0 0 0 2px #FFB800, 0 4px 12px rgba(255, 184, 0, 0.18); }
+  .topic-card.is-history { background: linear-gradient(135deg, #FAFBFC, #F5F4FF); border: 1px solid #D7D4FF; }
+  .history-badge {
+    display: inline-block; background: #EEEDFF; color: #4338CA;
+    font-size: 10px; padding: 2px 8px; border-radius: 8px;
+    font-weight: 500; letter-spacing: 0.2px;
+  }
+  .topic-card .enrich-note {
+    background: #FFF7E0; border-left: 3px solid #FFB800;
+    padding: 7px 10px; margin-top: 10px; font-size: 11px; color: #8C6000;
+    border-radius: 4px; font-weight: 500;
+  }
+
+  /* 底部时间轴 */
+  .timeline {
+    height: 52px; background: #FFFFFF; border-top: 1px solid #E5E8EE;
+    display: flex; align-items: center; padding: 0 24px; gap: 12px;
+  }
+  .timeline .progress-wrap {
+    flex: 1; height: 6px; background: #E5E8EE; border-radius: 3px; position: relative;
+    cursor: pointer;
+  }
+  .timeline .progress-fill {
+    height: 100%; background: linear-gradient(90deg, #635BFF, #8B85FF);
+    border-radius: 3px; width: 0%; transition: width 0.2s;
+    box-shadow: 0 0 8px rgba(99, 91, 255, 0.4);
+  }
+  .timeline .marker-dot {
+    position: absolute; top: 50%; transform: translate(-50%, -50%);
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #635BFF; border: 2px solid #FFFFFF;
+    box-shadow: 0 0 0 1px #635BFF, 0 2px 4px rgba(99, 91, 255, 0.3);
+  }
+  .timeline .marker-dot.enrich { background: #FFB800; box-shadow: 0 0 0 1px #FFB800, 0 2px 4px rgba(255, 184, 0, 0.3); }
+  .timeline .marker-dot.derive { background: #06B6D4; box-shadow: 0 0 0 1px #06B6D4, 0 2px 4px rgba(6, 182, 212, 0.3); }
+  .timeline .marker-dot.skip { background: #8B94A8; box-shadow: 0 0 0 1px #8B94A8, 0 2px 4px rgba(139, 148, 168, 0.3); }
+  .timeline .time-display { color: #5A6378; font-size: 12px; font-family: "JetBrains Mono", "SF Mono", monospace; font-weight: 500; }
+
+  .legend { display: flex; gap: 14px; font-size: 11px; color: #5A6378; font-weight: 500; }
+  .legend span { display: flex; align-items: center; gap: 5px; }
+  .legend .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .legend .dot.trigger { background: #635BFF; }
+  .legend .dot.enrich { background: #FFB800; }
+  .legend .dot.derive { background: #06B6D4; }
+  .legend .dot.skip { background: #8B94A8; }
+</style>
+</head>
+<body>
+
+<!-- 顶部栏 -->
+<div class="topbar">
+  <div>
+    <span class="brand">元宝派 · 话题生成 Demo</span>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><b id="kpi-msg">0</b>条消息</div>
+    <div class="kpi"><b id="kpi-new">0</b>新建</div>
+    <div class="kpi"><b id="kpi-enrich">0</b>丰富</div>
+    <div class="kpi"><b id="kpi-derive">0</b>衍生</div>
+    <div class="kpi kpi-skip"><b id="kpi-skip">0</b>放弃</div>
+  </div>
+  <div class="controls">
+    <select id="case-selector">
+      <option value="">加载中…</option>
+    </select>
+    <div class="speed-ctrl">
+      <span style="font-size:12px;color:#6d7a8f;">速度</span>
+      <button class="speed-btn" data-speed="1">1x</button>
+      <button class="speed-btn active" data-speed="2">2x</button>
+      <button class="speed-btn" data-speed="4">4x</button>
+    </div>
+    <button class="btn ghost" id="btn-reset">↻ 重播</button>
+    <button class="btn" id="btn-play">▶ 开始播放</button>
+  </div>
+</div>
+
+  <!-- 主体 -->
+<div class="layout">
+  <!-- 左：群聊流 -->
+  <div class="chat-panel">
+    <div class="chat-header">
+      <div class="chat-title">
+        <span id="group-name">—</span>
+        <span class="meta" id="group-meta">—</span>
+      </div>
+      <div style="font-size:12px;color:#6d7a8f;" id="current-time">—</div>
+    </div>
+    <div class="chat-scroll" id="chat-scroll">
+      <div class="empty-hint" style="color:#4a5568;text-align:center;padding:60px 16px;font-style:italic;">
+        👈 请从顶部选择 case，点「开始播放」
+      </div>
+    </div>
+  </div>
+
+  <!-- 右：话题侧栏 -->
+  <div class="topic-panel">
+    <div class="topic-header">
+      📌 派内沉淀话题
+      <span style="float:right;color:#6d7a8f;font-size:12px;" id="topic-count">0 条</span>
+    </div>
+    <div class="topic-list" id="topic-list">
+      <div class="empty-hint">点击「开始播放」<br>AI 会从群聊中自动沉淀话题…</div>
+    </div>
+  </div>
+</div>
+
+<!-- 底部时间轴 -->
+<div class="timeline">
+  <div class="legend">
+    <span><i class="dot trigger"></i>新建</span>
+    <span><i class="dot enrich"></i>丰富</span>
+    <span><i class="dot derive"></i>衍生</span>
+    <span><i class="dot skip"></i>放弃</span>
+  </div>
+  <div class="progress-wrap" id="progress-wrap">
+    <div class="progress-fill" id="progress-fill"></div>
+    <!-- 动态插入 marker-dot -->
+  </div>
+  <div class="time-display" id="progress-text">0 / 0</div>
+</div>
+
+<script>
+// ========== 动态加载 case 索引 + 选中 case 数据 ==========
+// 所有数据都在 data/ 目录下，换真数据只需替换 JSON 文件
+
+const chatScroll = document.getElementById('chat-scroll');
+const topicList = document.getElementById('topic-list');
+const topicCount = document.getElementById('topic-count');
+const progressFill = document.getElementById('progress-fill');
+const progressText = document.getElementById('progress-text');
+const progressWrap = document.getElementById('progress-wrap');
+const currentTime = document.getElementById('current-time');
+const groupName = document.getElementById('group-name');
+const groupMeta = document.getElementById('group-meta');
+const btnPlay = document.getElementById('btn-play');
+const btnReset = document.getElementById('btn-reset');
+const caseSelector = document.getElementById('case-selector');
+
+const kpiMsg = document.getElementById('kpi-msg');
+const kpiNew = document.getElementById('kpi-new');
+const kpiEnrich = document.getElementById('kpi-enrich');
+const kpiDerive = document.getElementById('kpi-derive');
+const kpiSkip = document.getElementById('kpi-skip');
+
+let currentCase = null;   // 当前 case 的完整数据对象
+let caseIndex = null;     // data/index.json 内容
+let cursor = 0;
+let playing = false;
+let timer = null;
+let counters = { msg: 0, new: 0, enrich: 0, derive: 0, skip: 0 };
+let playbackSpeed = 2;    // 默认 2x
+
+function updateKPI() {
+  kpiMsg.textContent = counters.msg;
+  kpiNew.textContent = counters.new;
+  kpiEnrich.textContent = counters.enrich;
+  kpiDerive.textContent = counters.derive;
+  if (kpiSkip) kpiSkip.textContent = counters.skip;
+}
+
+async function loadCaseIndex() {
+  try {
+    const r = await fetch('data/index.json');
+    caseIndex = await r.json();
+    caseSelector.innerHTML = '';
+    caseIndex.cases.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = c.label;
+      if (c.status !== 'ready') opt.disabled = true;
+      caseSelector.appendChild(opt);
+    });
+    // 默认选第一个 ready 的
+    const firstReady = caseIndex.cases.find(c => c.status === 'ready');
+    if (firstReady) {
+      caseSelector.value = firstReady.id;
+      await loadCase(firstReady.id);
+    }
+  } catch (e) {
+    caseSelector.innerHTML = '<option>加载失败，请用本地服务器打开</option>';
+    console.error('加载 data/index.json 失败：', e);
+    alert('请用本地服务器打开此页面，不能直接双击 file:// 打开\n推荐：在 demo_mock 目录运行 python3 -m http.server 8000');
+  }
+}
+
+async function loadCase(caseId) {
+  const meta = caseIndex.cases.find(c => c.id === caseId);
+  if (!meta) return;
+  const r = await fetch(meta.file);
+  currentCase = await r.json();
+  // 更新顶部群名
+  groupName.textContent = currentCase.group?.name || currentCase.title || caseId;
+  groupMeta.textContent = currentCase.group?.meta || '';
+  reset();
+  renderTimelineDots();
+}
+
+// 扫描所有 enrich/derive 事件用到的 topicId
+// 如果它没有对应的 'new' 事件创造，就当作"已存在的历史话题"——从 case 自带 prerenderTopics 或内置 history fallback 渲染一张卡
+function prerenderHistoryTopics() {
+  if (!currentCase) return;
+  const newIds = new Set();
+  const refIds = new Set();
+  currentCase.events.forEach(ev => {
+    if (ev.t !== 'trigger') return;
+    if (ev.mode === 'new' || ev.mode === 'derive') newIds.add(String(ev.topicId));
+    if (ev.mode === 'enrich' || ev.mode === 'derive') {
+      if (ev.targetTopicId != null) refIds.add(String(ev.targetTopicId));
+      // 兼容老 mock 数据：enrich 的 topicId 直接指向已有话题
+      if (ev.mode === 'enrich' && ev.topicId != null) refIds.add(String(ev.topicId));
+    }
+  });
+  // 缺失的 = 被引用但没被新建的
+  const missing = [...refIds].filter(id => !newIds.has(id));
+  if (missing.length === 0) return;
+
+  // 清空 empty-hint
+  if (topicList.querySelector('.empty-hint')) topicList.innerHTML = '';
+
+  // 从 case 自带 prerenderTopics 或默认 history 拿数据
+  const history = currentCase.prerenderTopics || DEFAULT_HISTORY;
+  missing.forEach(id => {
+    const hist = history[id] || history[`T_HIS_${String(id).padStart(3, '0')}`] || DEFAULT_HISTORY[id];
+    const t = hist || {
+      typeLabel: '已沉淀',
+      type: '指南',
+      title: `历史话题 #${id}`,
+      summary: '（已沉淀历史话题占位）',
+      reason: '上下文匹配',
+      members: '——',
+      range: '——'
+    };
+    const card = document.createElement('div');
+    card.className = `topic-card type-${t.type || '指南'} is-history`;
+    card.id = `topic-${id}`;
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+        <span class="type-badge">${escapeHTML(t.typeLabel || '实用指南型')}</span>
+        <span class="history-badge">📚 派内已沉淀</span>
+      </div>
+      <div class="title">${escapeHTML(t.title)}</div>
+      <div class="summary">${escapeHTML(t.summary)}</div>
+      ${t.reason ? `<div class="reason-tag">进入理由：${escapeHTML(t.reason)}</div>` : ''}
+      <div class="meta">
+        <span>${escapeHTML(t.members || '——')}</span>
+        <span>${escapeHTML(t.range || '——')}</span>
+      </div>
+    `;
+    topicList.appendChild(card);
+  });
+  topicCount.textContent = `${topicList.querySelectorAll('.topic-card').length} 条`;
+}
+
+// 默认 history 兜底数据（基于 history_candidates.json 压缩版）
+const DEFAULT_HISTORY = {
+  "1": {
+    typeLabel: "实用指南型",
+    type: "指南",
+    title: "只玩 FIFA 和蜘蛛侠的人，PS5 和 Switch 2 怎么选？",
+    summary: "群里围绕'只玩 FIFA 和蜘蛛侠的玩家该买哪台主机'展开讨论。多数发言认为 PS5 更匹配这类玩家偏好；Switch 2 优势在便携、独占和合家欢。后续讨论延伸到 PS5 数字版/光驱版的取舍，重点在二手盘和长期使用。",
+    reason: "想参考",
+    members: "5 位成员",
+    range: "2026-05-05"
+  },
+  "2": {
+    typeLabel: "真实体验型",
+    type: "体验",
+    title: "腾讯会议 AI 纪要实测：能替代速记，决策会议还得人肉复核",
+    summary: "群成员分享一周内用腾讯会议 AI 纪要开 5 场会的真实体验。踩坑：发言人识别合并、黑话识别成同音字、纪要偏流水账。惊喜：会后 10 秒出纪要、自动识别 action item。最终共识：一般业务会议可用，决策会议人肉复核。",
+    reason: "想参考",
+    members: "6 位成员",
+    range: "2026-05-07"
+  }
+};
+
+function render(ev) {
+  if (ev.t === 'day') {
+    const d = document.createElement('div');
+    d.className = 'day-divider';
+    d.innerHTML = `<span>📅 ${ev.label}</span>`;
+    chatScroll.appendChild(d);
+    currentTime.textContent = ev.label;
+  } else if (ev.t === 'msg') {
+    const m = currentCase.members[ev.sender] || { color: '#999', emoji: '?' };
+    const isBot = ev.sender === '元宝' || ev.sender === '元宝助手' || m.emoji === '🤖';
+    // 头像内容判断：emoji 字符 / 单字 / 字母
+    const rawEmoji = m.emoji || ev.sender.charAt(0);
+    const isEmojiGlyph = /\p{Extended_Pictographic}/u.test(rawEmoji);
+    // 字母/中文用渐变背景
+    const grad = avatarGradient(m.color || '#FF6B1A');
+    const avaInner = isEmojiGlyph
+      ? `<span class="ava-emoji">${rawEmoji}</span>`
+      : `<span class="ava-text">${escapeHTML(rawEmoji)}</span>`;
+    const wrap = document.createElement('div');
+    wrap.className = 'msg' + (isBot ? ' bot' : '');
+    wrap.innerHTML = `
+      <div class="avatar" style="background:${grad}">${avaInner}</div>
+      <div class="msg-body">
+        <div class="msg-meta">
+          <span class="name">${escapeHTML(ev.sender)}</span>
+          <span class="time">${escapeHTML(ev.time)}</span>
+        </div>
+        <div class="bubble">${escapeHTML(ev.text)}</div>
+      </div>
+    `;
+    chatScroll.appendChild(wrap);
+    counters.msg++;
+    updateKPI();
+  } else if (ev.t === 'silence') {
+    const d = document.createElement('div');
+    d.className = 'silence';
+    d.textContent = ev.text;
+    chatScroll.appendChild(d);
+  } else if (ev.t === 'trigger') {
+    renderTrigger(ev);
+  }
+  chatScroll.scrollTop = chatScroll.scrollHeight;
+  updateProgress();
+}
+
+// 把单色 hex 转成 135° 双色渐变（自动加亮 + 加暗）
+function avatarGradient(hex) {
+  const c = hex.replace('#', '');
+  if (c.length !== 6) return `linear-gradient(135deg, ${hex}, ${hex})`;
+  const r = parseInt(c.slice(0, 2), 16);
+  const g = parseInt(c.slice(2, 4), 16);
+  const b = parseInt(c.slice(4, 6), 16);
+  const lighter = `rgb(${Math.min(255, r + 38)}, ${Math.min(255, g + 38)}, ${Math.min(255, b + 38)})`;
+  const darker = `rgb(${Math.max(0, r - 24)}, ${Math.max(0, g - 24)}, ${Math.max(0, b - 24)})`;
+  return `linear-gradient(135deg, ${lighter}, ${darker})`;
+}
+
+function escapeHTML(s) {
+  return String(s).replace(/[&<>"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[ch]));
+}
+
+function renderTrigger(ev) {
+  const marker = document.createElement('div');
+  marker.className = ev.mode === 'enrich' ? 'enrich-marker' :
+                     ev.mode === 'derive' ? 'derive-marker' :
+                     ev.mode === 'skip' ? 'skip-marker' : 'trigger-marker';
+  const modeLabel = ev.mode === 'enrich' ? '🔄 话题被丰富' :
+                    ev.mode === 'derive' ? '🌱 衍生新话题' :
+                    ev.mode === 'skip' ? '⏸ 判定 = 放弃沉淀' : '✨ 触发话题生成';
+  const fakeTag = ev.fake_note ? `<div style="font-size:10px;color:#b8a3ff;margin-bottom:4px;font-style:italic;">${escapeHTML(ev.fake_note)}</div>` : '';
+  const skipReason = ev.mode === 'skip' && ev.skipReason
+    ? `<div class="skip-reason">理由：${escapeHTML(ev.skipReason)}</div>` : '';
+  marker.innerHTML = `
+    ${fakeTag}
+    <div class="title">${modeLabel}</div>
+    <div>${(ev.stages || []).map(s => `<div style="margin-top:3px;">&nbsp;&nbsp;${escapeHTML(s)}</div>`).join('')}</div>
+    ${skipReason}
+  `;
+  chatScroll.appendChild(marker);
+
+  if (ev.mode === 'new' || ev.mode === 'derive') {
+    if (topicList.querySelector('.empty-hint')) topicList.innerHTML = '';
+    const t = ev.topic;
+    const card = document.createElement('div');
+    card.className = `topic-card type-${t.type}`;
+    card.id = `topic-${ev.topicId}`;
+    card.innerHTML = `
+      <span class="type-badge">${escapeHTML(t.typeLabel)}</span>
+      ${t.parentHint ? `<div style="font-size:10px;color:#b39ddb;margin-bottom:6px;">🌱 ${escapeHTML(t.parentHint)}</div>` : ''}
+      <div class="title">${escapeHTML(t.title)}</div>
+      <div class="summary">${escapeHTML(t.summary)}</div>
+      <div class="reason-tag">进入理由：${escapeHTML(t.reason)}</div>
+      <div class="meta">
+        <span>${escapeHTML(t.members)}</span>
+        <span>${escapeHTML(t.range)}</span>
+      </div>
+    `;
+    topicList.appendChild(card);
+    topicCount.textContent = `${topicList.querySelectorAll('.topic-card').length} 条`;
+    if (ev.mode === 'new') counters.new++;
+    if (ev.mode === 'derive') counters.derive++;
+  } else if (ev.mode === 'enrich') {
+    // 兼容两种字段：targetTopicId（新规范）和 topicId（老 mock 数据）
+    const targetId = ev.targetTopicId != null ? ev.targetTopicId : ev.topicId;
+    const card = document.getElementById(`topic-${targetId}`);
+    if (card) {
+      card.classList.add('enriched');
+      // 滚动到被丰富的卡片
+      card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      const note = document.createElement('div');
+      note.className = 'enrich-note';
+      note.textContent = ev.enrichNote || '话题被丰富';
+      card.appendChild(note);
+    } else {
+      console.warn(`[enrich] 找不到目标话题 topic-${targetId}，请检查 case JSON 的 topicId / targetTopicId 字段`);
+    }
+    counters.enrich++;
+  } else if (ev.mode === 'skip') {
+    counters.skip++;
+  }
+  updateKPI();
+}
+
+function updateProgress() {
+  if (!currentCase) { progressFill.style.width = '0%'; progressText.textContent = '0 / 0'; return; }
+  const total = currentCase.events.length;
+  const pct = Math.round((cursor / total) * 100);
+  progressFill.style.width = pct + '%';
+  progressText.textContent = `${cursor} / ${total}`;
+}
+
+function step() {
+  if (!currentCase) return;
+  if (cursor >= currentCase.events.length) {
+    playing = false;
+    btnPlay.textContent = '✓ 播放完成';
+    clearTimeout(timer);
+    return;
+  }
+  const ev = currentCase.events[cursor];
+  cursor++;
+  render(ev);
+
+  let delay = 600;
+  if (ev.t === 'silence') delay = 900;
+  else if (ev.t === 'trigger') delay = 1800;
+  else if (ev.t === 'day') delay = 700;
+
+  // 应用速度倍率
+  delay = Math.round(delay / playbackSpeed);
+
+  clearTimeout(timer);
+  timer = setTimeout(step, delay);
+}
+
+function play() {
+  if (!currentCase) { alert('请先选择 case'); return; }
+  if (playing) {
+    clearTimeout(timer);
+    playing = false;
+    btnPlay.textContent = '▶ 继续';
+    return;
+  }
+  playing = true;
+  btnPlay.textContent = '⏸ 暂停';
+  step();
+}
+
+function reset() {
+  clearTimeout(timer);
+  playing = false;
+  cursor = 0;
+  counters = { msg: 0, new: 0, enrich: 0, derive: 0, skip: 0 };
+  chatScroll.innerHTML = '';
+  topicList.innerHTML = '<div class="empty-hint">点击「开始播放」<br>AI 会从群聊中自动沉淀话题…</div>';
+  topicCount.textContent = '0 条';
+  btnPlay.textContent = '▶ 开始播放';
+  updateKPI();
+  updateProgress();
+  currentTime.textContent = '—';
+  // reset 之后重新预渲染 history 占位卡
+  prerenderHistoryTopics();
+}
+
+function renderTimelineDots() {
+  progressWrap.querySelectorAll('.marker-dot').forEach(d => d.remove());
+  if (!currentCase) return;
+  const total = currentCase.events.length;
+  currentCase.events.forEach((ev, i) => {
+    if (ev.t === 'trigger') {
+      const dot = document.createElement('div');
+      dot.className = 'marker-dot ' + (ev.mode === 'enrich' ? 'enrich' : ev.mode === 'derive' ? 'derive' : ev.mode === 'skip' ? 'skip' : '');
+      dot.style.left = ((i / total) * 100) + '%';
+      progressWrap.appendChild(dot);
+    }
+  });
+}
+
+btnPlay.addEventListener('click', play);
+btnReset.addEventListener('click', reset);
+caseSelector.addEventListener('change', e => {
+  if (e.target.value) loadCase(e.target.value);
+});
+
+// 速度切换
+document.querySelectorAll('.speed-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    playbackSpeed = parseFloat(btn.dataset.speed);
+  });
+});
+
+// 启动
+loadCaseIndex();
+</script>
+</body>
+</html>
