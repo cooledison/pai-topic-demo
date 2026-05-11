@@ -610,9 +610,19 @@ function render(ev) {
     counters.msg++;
     updateKPI();
   } else if (ev.t === 'silence') {
+    // 文案健化：原始数据里可能是"自然停顿 · 811 分钟无新消息"这种噪声
+    // 跨日/跨小时的长停顿完全隐藏；短停顿用人味文案替代
+    const minMatch = /(\d+)\s*分钟/.exec(ev.text || '');
+    const mins = minMatch ? parseInt(minMatch[1]) : 0;
+    if (mins > 60) {
+      // 跨小时级别直接跳过，不渲染
+      chatScroll.scrollTop = chatScroll.scrollHeight;
+      updateProgress();
+      return;
+    }
     const d = document.createElement('div');
     d.className = 'silence';
-    d.textContent = ev.text;
+    d.textContent = mins > 0 ? `💤 群里安静了 ${mins} 分钟` : ev.text;
     chatScroll.appendChild(d);
   } else if (ev.t === 'trigger') {
     renderTrigger(ev);
