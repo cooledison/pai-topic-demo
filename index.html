@@ -273,9 +273,11 @@
     to { opacity: 1; transform: translateX(0) scale(1); }
   }
   .topic-card .type-badge {
-    display: inline-block; background: #635BFF; color: #fff;
+    display: inline-flex; align-items: center;
+    background: #635BFF; color: #fff;
     font-size: 11px; padding: 3px 10px; border-radius: 12px;
     margin-bottom: 10px; font-weight: 600; letter-spacing: 0.3px;
+    line-height: 1.4;
   }
   /* 五类话题：用饱和但和谐的彩色（主色紫为指南，其他保留差异） */
   .topic-card.type-指南 .type-badge { background: #635BFF; }
@@ -297,11 +299,14 @@
     margin-top: 8px; font-weight: 500;
   }
   .topic-card.enriched { box-shadow: 0 0 0 2px #FFB800, 0 4px 12px rgba(255, 184, 0, 0.18); }
+  .topic-card.is-history .type-badge { margin-bottom: 0; }
   .topic-card.is-history { background: linear-gradient(135deg, #FAFBFC, #F5F4FF); border: 1px solid #D7D4FF; }
   .history-badge {
-    display: inline-block; background: #EEEDFF; color: #4338CA;
-    font-size: 10px; padding: 2px 8px; border-radius: 8px;
-    font-weight: 500; letter-spacing: 0.2px;
+    display: inline-flex; align-items: center;
+    background: #EEEDFF; color: #4338CA;
+    font-size: 11px; padding: 3px 10px; border-radius: 12px;
+    font-weight: 600; letter-spacing: 0.3px;
+    line-height: 1.4;
   }
   .topic-card .enrich-note {
     background: #FFF7E0; border-left: 3px solid #FFB800;
