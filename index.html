@@ -778,8 +778,10 @@ async function loadCaseIndex() {
       });
       caseSelector.appendChild(og);
     });
-    // 默认选第一个 ready 的
-    const firstReady = caseIndex.cases.find(c => c.status === 'ready');
+    // 默认锚定到 D5（C 罗 41 岁补时绝杀）—— 给老板看的钩子最猛 case
+    const preferredId = 'case_D5_cr7';
+    const preferred = caseIndex.cases.find(c => c.id === preferredId && c.status === 'ready');
+    const firstReady = preferred || caseIndex.cases.find(c => c.status === 'ready');
     if (firstReady) {
       caseSelector.value = firstReady.id;
       await loadCase(firstReady.id);
