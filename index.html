@@ -17,7 +17,7 @@
     background:
       radial-gradient(ellipse 80% 60% at 0% 0%, rgba(10, 186, 181, 0.20), transparent 55%),
       radial-gradient(ellipse 70% 60% at 100% 100%, rgba(236, 72, 153, 0.18), transparent 55%),
-      radial-gradient(ellipse 50% 40% at 80% 10%, rgba(245, 211, 132, 0.16), transparent 60%),
+      radial-gradient(ellipse 50% 40% at 80% 10%, rgba(251, 191, 36, 0.14), transparent 60%),
       radial-gradient(ellipse 50% 40% at 10% 90%, rgba(165, 243, 252, 0.14), transparent 60%),
       linear-gradient(180deg, #FBFEFD 0%, #F0FAF9 100%);
     background-attachment: fixed;
@@ -240,12 +240,12 @@
   /* 丰富：亮黄（绿粉黄三色配） */
   .enrich-marker {
     margin: 14px 0; padding: 11px 14px;
-    background: linear-gradient(90deg, #FDF6E3, #FFFDF4);
-    border-left: 4px solid #F5D384;
-    border-radius: 10px; color: #92702A; font-size: 12px;
-    box-shadow: 0 2px 8px rgba(212, 169, 94, 0.14);
+    background: linear-gradient(90deg, #FEF3C7, #FFFBEB);
+    border-left: 4px solid #FBBF24;
+    border-radius: 10px; color: #92400E; font-size: 12px;
+    box-shadow: 0 2px 8px rgba(251, 191, 36, 0.10);
   }
-  .enrich-marker .title { font-weight: 700; color: #A57F2F; margin-bottom: 3px; font-size: 13px; letter-spacing: -0.01em; }
+  .enrich-marker .title { font-weight: 700; color: #D97706; margin-bottom: 3px; font-size: 13px; letter-spacing: -0.01em; }
   /* 衍生：玫瑰粉 */
   .derive-marker {
     margin: 14px 0; padding: 11px 14px;
@@ -327,7 +327,7 @@
     letter-spacing: 0.2px;
   }
   .hint-pill.hint-new { background: #CCFBF1; color: #0F766E; }
-  .hint-pill.hint-enrich { background: #FDF6E3; color: #92702A; }
+  .hint-pill.hint-enrich { background: #FEF3C7; color: #92400E; }
   .hint-pill.hint-derive { background: #FCE7F3; color: #9D174D; }
   .hint-pill.hint-skip { background: #F1F5F9; color: #475569; }
 
@@ -366,7 +366,7 @@
   }
   /* 五类话题：多巴胺色系（互不抢戏，各有记忆点） */
   .topic-card.type-指南 .type-badge { background: linear-gradient(135deg, #0ABAB5, #3FCAC5); }
-  .topic-card.type-体验 .type-badge { background: linear-gradient(135deg, #F5D384, #D4A95E); }
+  .topic-card.type-体验 .type-badge { background: linear-gradient(135deg, #FBBF24, #F59E0B); }
   .topic-card.type-事件 .type-badge { background: linear-gradient(135deg, #38BDF8, #0EA5E9); }
   .topic-card.type-共创 .type-badge { background: linear-gradient(135deg, #EC4899, #DB2777); }
   .topic-card.type-议题 .type-badge { background: linear-gradient(135deg, #A78BFA, #8B5CF6); }
@@ -384,7 +384,7 @@
     margin-top: 10px; font-weight: 500;
     border: 1px solid rgba(10, 186, 181, 0.16);
   }
-  .topic-card.enriched { box-shadow: 0 0 0 2px #F5D384, 0 4px 14px rgba(212, 169, 94, 0.26); }
+  .topic-card.enriched { box-shadow: 0 0 0 2px #FBBF24, 0 4px 14px rgba(251, 191, 36, 0.22); }
   .topic-card.is-history .type-badge { margin-bottom: 0; }
   .topic-card.is-history { background: linear-gradient(135deg, #FFFFFF, #FDF2F8); border: 1px solid rgba(236, 72, 153, 0.16); }
   .history-badge {
@@ -395,8 +395,8 @@
     line-height: 1.4;
   }
   .topic-card .enrich-note {
-    background: linear-gradient(90deg, #FDF6E3, #FFFDF4); border-left: 3px solid #F5D384;
-    padding: 7px 10px; margin-top: 10px; font-size: 11px; color: #92702A;
+    background: linear-gradient(90deg, #FEF3C7, #FFFBEB); border-left: 3px solid #FBBF24;
+    padding: 7px 10px; margin-top: 10px; font-size: 11px; color: #92400E;
     border-radius: 6px; font-weight: 500;
   }
 
@@ -423,7 +423,7 @@
     background: #0ABAB5; border: 2px solid #FFFFFF;
     box-shadow: 0 0 0 0.5px rgba(10, 186, 181, 0.6), 0 2px 4px rgba(10, 186, 181, 0.25);
   }
-  .timeline .marker-dot.enrich { background: #F5D384; box-shadow: 0 0 0 0.5px rgba(212, 169, 94, 0.6), 0 2px 4px rgba(212, 169, 94, 0.28); }
+  .timeline .marker-dot.enrich { background: #FBBF24; box-shadow: 0 0 0 0.5px rgba(251, 191, 36, 0.6), 0 2px 4px rgba(251, 191, 36, 0.25); }
   .timeline .marker-dot.derive { background: #EC4899; box-shadow: 0 0 0 0.5px rgba(236, 72, 153, 0.6), 0 2px 4px rgba(236, 72, 153, 0.25); }
   .timeline .marker-dot.skip { background: #94A3B8; box-shadow: 0 0 0 0.5px rgba(148, 163, 184, 0.6), 0 2px 4px rgba(148, 163, 184, 0.25); }
   .timeline .time-display { color: #475569; font-size: 11.5px; font-family: "JetBrains Mono", "SF Mono", monospace; font-weight: 500; letter-spacing: -0.01em; }
@@ -432,7 +432,7 @@
   .legend span { display: flex; align-items: center; gap: 5px; }
   .legend .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
   .legend .dot.trigger { background: #0ABAB5; }
-  .legend .dot.enrich { background: #F5D384; }
+  .legend .dot.enrich { background: #FBBF24; }
   .legend .dot.derive { background: #EC4899; }
   .legend .dot.skip { background: #94A3B8; }
 
