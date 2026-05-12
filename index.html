@@ -586,7 +586,17 @@ async function loadCase(caseId) {
   currentCase = await r.json();
   // 更新顶部群名
   groupName.textContent = currentCase.group?.name || currentCase.title || caseId;
-  groupMeta.textContent = currentCase.group?.meta || '';
+  // 动态计算 meta：避免 JSON 里的硬编码跟实际消息数不一致
+  const events = currentCase.events || [];
+  const msgs = events.filter(e => e.t === 'msg');
+  const senderSet = new Set(msgs.map(m => m.sender));
+  const times = msgs.map(m => m.time).filter(Boolean);
+  let durationLabel = '';
+  if (times.length >= 2) {
+    // 时间格式可能是 "10:30" 或 "昨 22:30"，简单计算第一条和最后一条
+    durationLabel = ` · ${times[0]} - ${times[times.length-1]}`;
+  }
+  groupMeta.textContent = `${senderSet.size} 位成员 · ${msgs.length} 条消息${durationLabel}`;
   reset();
   renderTimelineDots();
 }
