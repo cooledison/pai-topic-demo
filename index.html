@@ -419,6 +419,125 @@
     .intro-title { font-size: 15px; }
     .intro-body p { font-size: 13px; }
   }
+
+  /* === drawer: 话题详情抽屉 === */
+  .topic-card { cursor: pointer; }
+  .drawer-mask {
+    position: fixed; inset: 0;
+    background: rgba(26, 31, 44, 0.28);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+  .drawer-mask.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .drawer {
+    position: fixed; right: 0; top: 0;
+    width: min(420px, 92vw); height: 100vh;
+    background: #FFFFFF;
+    box-shadow: -8px 0 32px rgba(26, 31, 44, 0.12);
+    z-index: 1001;
+    transform: translateX(100%);
+    transition: transform 0.28s cubic-bezier(.2, .8, .2, 1);
+    display: flex; flex-direction: column;
+  }
+  .drawer.open { transform: translateX(0); }
+  .drawer-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid #E5E8EE;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-shrink: 0;
+  }
+  .drawer-header #drawerTitle {
+    font-size: 14px; color: #1A1F2C; font-weight: 700;
+  }
+  .drawer-close {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 18px; color: #5A6378;
+    transition: background 0.15s;
+    user-select: none;
+  }
+  .drawer-close:hover { background: #F1F3F7; }
+  .drawer-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .drawer-body::-webkit-scrollbar { width: 6px; }
+  .drawer-body::-webkit-scrollbar-thumb { background: #D1D6E0; border-radius: 3px; }
+  .drawer-section { margin-bottom: 20px; }
+  .drawer-section .section-title {
+    font-size: 12px; color: #8B94A8;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+  .drawer .d-title {
+    font-size: 20px; font-weight: 700; color: #1A1F2C;
+    line-height: 1.4; margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+  .drawer .d-summary {
+    font-size: 14px; color: #5A6378; line-height: 1.7;
+  }
+  .drawer .d-reason {
+    display: inline-block;
+    background: #EEEDFF; color: #635BFF;
+    padding: 4px 10px; border-radius: 6px;
+    font-size: 12px; font-weight: 500;
+  }
+  .drawer-members { display: flex; flex-wrap: wrap; gap: 8px; }
+  .drawer-member {
+    display: flex; flex-direction: column; align-items: center;
+    width: 56px;
+  }
+  .drawer-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 14px; font-weight: 600;
+    box-shadow:
+      0 2px 6px rgba(26, 31, 44, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    border: 2px solid #FFFFFF;
+    margin-bottom: 4px;
+  }
+  .drawer-mname {
+    font-size: 11px; color: #5A6378;
+    max-width: 100%;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    text-align: center;
+  }
+  .drawer-msg {
+    border-left: 3px solid #E5E8EE;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    background: #FAFBFC;
+    border-radius: 6px;
+  }
+  .drawer-msg .m-head {
+    display: flex; justify-content: space-between;
+    font-size: 11px; margin-bottom: 4px;
+    align-items: baseline;
+  }
+  .drawer-msg .m-sender {
+    font-size: 13px; color: #1A1F2C; font-weight: 600;
+  }
+  .drawer-msg .m-time {
+    font-size: 11px; color: #8B94A8;
+  }
+  .drawer-msg .m-text {
+    font-size: 13px; color: #1A1F2C; line-height: 1.5;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .drawer-empty {
+    font-size: 14px; color: #8B94A8;
+    text-align: center; padding: 24px;
+  }
 </style>
 </head>
 <body>
@@ -500,6 +619,16 @@
   </div>
   <div class="time-display" id="progress-text">0 / 0</div>
 </div>
+
+<!-- === drawer: 话题详情抽屉 DOM（必须在 <script> 之前以便 getElementById 找到） === -->
+<div class="drawer-mask" id="drawerMask"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-header">
+    <span id="drawerTitle">话题详情</span>
+    <span class="drawer-close" id="drawerClose" title="关闭">×</span>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</aside>
 
 <script>
 // ========== 动态加载 case 索引 + 选中 case 数据 ==========
@@ -910,6 +1039,123 @@ document.querySelectorAll('.speed-btn').forEach(btn => {
 
 // 启动
 loadCaseIndex();
+
+// === drawer: 状态 ===
+let wasPlayingBeforeDrawer = false;
+const drawer = document.getElementById('drawer');
+const drawerMask = document.getElementById('drawerMask');
+const drawerBody = document.getElementById('drawerBody');
+const drawerClose = document.getElementById('drawerClose');
+
+// === drawer: 反推命中消息 ===
+function computeHitMsgs(topicId) {
+  if (!currentCase) return { hitMsgs: [], topic: null, isHistory: false };
+  const events = currentCase.events;
+  const idx = events.findIndex(ev =>
+    ev.t === 'trigger' &&
+    (ev.mode === 'new' || ev.mode === 'derive') &&
+    String(ev.topicId) === String(topicId)
+  );
+  if (idx < 0) {
+    // history placeholder
+    const histTopic = (currentCase.prerenderTopics && currentCase.prerenderTopics[topicId])
+      || (typeof DEFAULT_HISTORY !== 'undefined' && DEFAULT_HISTORY[topicId])
+      || null;
+    return { hitMsgs: [], topic: histTopic, isHistory: true };
+  }
+  const triggerEv = events[idx];
+  const msgs = [];
+  for (let i = idx - 1; i >= 0; i--) {
+    const e = events[i];
+    if (e.t === 'trigger' && (e.mode === 'new' || e.mode === 'derive')) break;
+    if (e.t === 'msg') msgs.unshift(e);
+  }
+  return { hitMsgs: msgs, topic: triggerEv.topic, isHistory: false };
+}
+
+// === drawer: 打开 ===
+function openDrawer(topicId) {
+  const { hitMsgs, topic, isHistory } = computeHitMsgs(topicId);
+  if (!topic) return; // 找不到任何信息就放弃
+
+  // 暂停播放
+  if (playing) {
+    wasPlayingBeforeDrawer = true;
+    clearTimeout(timer);
+    playing = false;
+    btnPlay.textContent = '▶ 继续';
+  } else {
+    wasPlayingBeforeDrawer = false;
+  }
+
+  // 参与人（去重保持顺序）
+  const senders = isHistory
+    ? []
+    : [...new Set(hitMsgs.map(m => m.sender))];
+
+  const memberHTML = senders.map(s => {
+    const m = (currentCase.members && currentCase.members[s]) || { color: '#8B94A8', emoji: s[0] || '?' };
+    const safe = escapeHTML(s);
+    const emoji = escapeHTML(m.emoji || s[0] || '?');
+    return `<div class="drawer-member" title="${safe}">
+      <div class="drawer-avatar" style="background:${avatarGradient(m.color || '#8B94A8')}">${emoji}</div>
+      <span class="drawer-mname">${safe}</span>
+    </div>`;
+  }).join('');
+
+  const msgHTML = isHistory
+    ? `<div class="drawer-empty">这是派内已沉淀的历史话题，本场未触发原始消息</div>`
+    : hitMsgs.length === 0
+      ? `<div class="drawer-empty">暂无命中消息</div>`
+      : hitMsgs.map(m => `<div class="drawer-msg">
+          <div class="m-head"><span class="m-sender">${escapeHTML(m.sender)}</span><span class="m-time">${escapeHTML(m.time)}</span></div>
+          <div class="m-text">${escapeHTML(m.text)}</div>
+        </div>`).join('');
+
+  drawerBody.innerHTML = `
+    <div class="drawer-section">
+      ${topic.typeLabel ? `<span class="type-badge" style="display:inline-flex;align-items:center;background:#635BFF;color:#fff;font-size:11px;padding:3px 10px;border-radius:12px;margin-bottom:10px;font-weight:600;letter-spacing:0.3px;line-height:1.4;">${escapeHTML(topic.typeLabel)}</span>` : ''}
+      <div class="d-title">${escapeHTML(topic.title || '')}</div>
+      <div class="d-summary">${escapeHTML(topic.summary || '')}</div>
+      ${topic.reason ? `<div style="margin-top:10px;"><span class="d-reason">进入理由：${escapeHTML(topic.reason)}</span></div>` : ''}
+    </div>
+    ${senders.length ? `<div class="drawer-section">
+      <div class="section-title">参与人 · ${senders.length}</div>
+      <div class="drawer-members">${memberHTML}</div>
+    </div>` : ''}
+    <div class="drawer-section">
+      <div class="section-title">${isHistory ? '历史背景' : `命中消息 · ${hitMsgs.length}`}</div>
+      ${msgHTML}
+    </div>
+  `;
+
+  drawer.classList.add('open');
+  drawerMask.classList.add('open');
+}
+
+// === drawer: 关闭 ===
+function closeDrawer() {
+  drawer.classList.remove('open');
+  drawerMask.classList.remove('open');
+  if (wasPlayingBeforeDrawer) {
+    wasPlayingBeforeDrawer = false;
+    play(); // play() 已内置 toggle，从暂停态切回播放继续 step
+  }
+}
+
+// === drawer: 事件绑定 ===
+topicList.addEventListener('click', (e) => {
+  const card = e.target.closest('.topic-card');
+  if (!card) return;
+  const tid = card.id.replace(/^topic-/, '');
+  if (!tid) return;
+  openDrawer(tid);
+});
+drawerMask.addEventListener('click', closeDrawer);
+drawerClose.addEventListener('click', closeDrawer);
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && drawer.classList.contains('open')) closeDrawer();
+});
 </script>
 </body>
 </html>
