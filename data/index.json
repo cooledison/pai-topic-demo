@@ -1,87 +1,77 @@
 {
-  "version": "v3.0-final-10cases",
-  "updated": "2026-05-11",
-  "note": "v3.0: 从 100 个真实 case 精选并改造 10 个 demo case，覆盖 5 类话题 × 4 类动作。",
+  "version": "v3.1-grouped-cases",
+  "updated": "2026-05-12",
+  "note": "v3.1: 给 case 加 group 字段，前端按动作类型分组展示",
   "cases": [
     {
       "id": "case_D1_ps5_enrich",
       "file": "data/case_D1_ps5_enrich.json",
-      "label": "D1 · PS5 选购 → 命中历史话题（丰富）",
-      "status": "ready",
-      "expected_type": "实用指南型",
-      "expected_actions": ["丰富"]
-    },
-    {
-      "id": "case_D2_ps5_games",
-      "file": "data/case_D2_ps5_games.json",
-      "label": "D2 · PS5 必玩游戏（新建 + 衍生）",
-      "status": "ready",
-      "expected_type": "实用指南型",
-      "expected_actions": ["新建", "衍生"]
+      "label": "PS5 选购 → 命中已有话题",
+      "group": "丰富",
+      "status": "ready"
     },
     {
       "id": "case_D3_meeting_ai_enrich",
       "file": "data/case_D3_meeting_ai_enrich.json",
-      "label": "D3 · 腾讯会议 AI 纪要 → 命中历史话题（丰富）",
-      "status": "ready",
-      "expected_type": "真实体验型",
-      "expected_actions": ["丰富"]
+      "label": "腾讯会议 AI 纪要 → 命中已有话题",
+      "group": "丰富",
+      "status": "ready"
     },
     {
       "id": "case_D4_wechat_status",
       "file": "data/case_D4_wechat_status.json",
-      "label": "D4 · 微信状态三派激辩（新建 · 议题判断型）",
-      "status": "ready",
-      "expected_type": "议题判断型",
-      "expected_actions": ["新建"]
+      "label": "微信状态三派激辩",
+      "group": "新建",
+      "status": "ready"
     },
     {
       "id": "case_D5_cr7",
       "file": "data/case_D5_cr7.json",
-      "label": "D5 · C 罗 41 岁补时绝杀（新建 · 事件共振型）",
-      "status": "ready",
-      "expected_type": "事件共振型",
-      "expected_actions": ["新建"]
+      "label": "C 罗 41 岁补时绝杀",
+      "group": "新建",
+      "status": "ready"
     },
     {
       "id": "case_D6_redblack_list",
       "file": "data/case_D6_redblack_list.json",
-      "label": "D6 · 周年红黑榜双轨清单（新建 · 群体共创型）",
-      "status": "ready",
-      "expected_type": "群体共创型",
-      "expected_actions": ["新建"]
+      "label": "周年红黑榜双轨清单",
+      "group": "新建",
+      "status": "ready"
     },
     {
       "id": "case_D7_24h_workday",
       "file": "data/case_D7_24h_workday.json",
-      "label": "D7 · 打工人 24 小时心路（新建 · 真实体验型）",
-      "status": "ready",
-      "expected_type": "真实体验型",
-      "expected_actions": ["新建"]
+      "label": "打工人 24 小时心路",
+      "group": "新建",
+      "status": "ready"
     },
     {
       "id": "case_D8_no_motivation",
       "file": "data/case_D8_no_motivation.json",
-      "label": "D8 · 没心气的结构性归因（新建 · 议题判断型）",
-      "status": "ready",
-      "expected_type": "议题判断型",
-      "expected_actions": ["新建"]
+      "label": "没心气的结构性归因",
+      "group": "新建",
+      "status": "ready"
+    },
+    {
+      "id": "case_D2_ps5_games",
+      "file": "data/case_D2_ps5_games.json",
+      "label": "PS5 必玩游戏 → 派生折扣监控",
+      "group": "衍生",
+      "status": "ready"
     },
     {
       "id": "case_D9_team_building",
       "file": "data/case_D9_team_building.json",
-      "label": "D9 · 团建安排（反例 · 放弃）",
-      "status": "ready",
-      "expected_type": "反例",
-      "expected_actions": ["放弃"]
+      "label": "团建安排（agent 选择放弃）",
+      "group": "反例",
+      "status": "ready"
     },
     {
       "id": "case_D10_internal",
       "file": "data/case_D10_internal.json",
-      "label": "D10 · 水群闲聊（反例 · 留池）",
-      "status": "ready",
-      "expected_type": "反例",
-      "expected_actions": ["留池"]
+      "label": "水群闲聊（agent 选择留池）",
+      "group": "反例",
+      "status": "ready"
     }
   ]
 }

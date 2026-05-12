@@ -2,7 +2,8 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8" />
-<title>元宝派 · 话题生成 Demo · Mock</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>元宝派 · 话题生成 Demo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -190,6 +191,8 @@
     border: 1px dashed #D1D6E0;
     color: #5A6378;
     font-size: 13.5px;
+    white-space: pre-line;  /* 让 bot 播报里的 \n 真的换行 */
+    max-width: 90%;
   }
 
   /* 触发点（新建：Stripe 紫） */
@@ -259,6 +262,31 @@
     font-style: italic;
   }
 
+  /* 首屏引导卡 */
+  .intro-card {
+    margin: 30px auto; max-width: 540px;
+    background: #FFFFFF; border-radius: 16px;
+    padding: 24px 28px;
+    box-shadow: 0 4px 20px rgba(26, 31, 44, 0.06);
+    border: 1px solid #E5E8EE;
+  }
+  .intro-title {
+    font-size: 17px; font-weight: 700; color: #1A1F2C;
+    letter-spacing: -0.015em; margin-bottom: 14px;
+  }
+  .intro-body p { font-size: 13.5px; line-height: 1.75; color: #5A6378; margin: 8px 0; }
+  .intro-body b { color: #1A1F2C; font-weight: 600; }
+  .intro-body .intro-tip { margin-top: 14px; padding-top: 14px; border-top: 1px dashed #E5E8EE; color: #635BFF; font-weight: 500; }
+  .hint-pill {
+    display: inline-block; padding: 2px 9px; border-radius: 10px;
+    font-size: 11.5px; font-weight: 600; margin-right: 4px;
+    letter-spacing: 0.2px;
+  }
+  .hint-pill.hint-new { background: #EEEDFF; color: #4338CA; }
+  .hint-pill.hint-enrich { background: #FFF7E0; color: #92400E; }
+  .hint-pill.hint-derive { background: #E0F7FA; color: #0E7490; }
+  .hint-pill.hint-skip { background: #F1F3F7; color: #5A6378; }
+
   .topic-card {
     background: #FFFFFF; border-radius: 12px; padding: 16px;
     margin-bottom: 14px; border: 1px solid #E5E8EE;
@@ -286,8 +314,8 @@
   .topic-card.type-共创 .type-badge { background: #F43F5E; }
   .topic-card.type-议题 .type-badge { background: #10B981; }
 
-  .topic-card .title { font-size: 14px; font-weight: 700; color: #1A1F2C; margin-bottom: 6px; line-height: 1.45; }
-  .topic-card .summary { font-size: 12px; color: #5A6378; line-height: 1.7; }
+  .topic-card .title { font-size: 14.5px; font-weight: 700; color: #1A1F2C; margin-bottom: 6px; line-height: 1.5; letter-spacing: -0.01em; }
+  .topic-card .summary { font-size: 13px; color: #1A1F2C; line-height: 1.72; }
   .topic-card .meta {
     font-size: 11px; color: #8B94A8; margin-top: 12px;
     padding-top: 10px; border-top: 1px dashed #E5E8EE;
@@ -295,8 +323,8 @@
   }
   .topic-card .reason-tag {
     display: inline-block; background: #EEEDFF;
-    color: #4338CA; font-size: 10px; padding: 3px 8px; border-radius: 8px;
-    margin-top: 8px; font-weight: 500;
+    color: #4338CA; font-size: 11px; padding: 3px 9px; border-radius: 10px;
+    margin-top: 10px; font-weight: 500;
   }
   .topic-card.enriched { box-shadow: 0 0 0 2px #FFB800, 0 4px 12px rgba(255, 184, 0, 0.18); }
   .topic-card.is-history .type-badge { margin-bottom: 0; }
@@ -346,6 +374,51 @@
   .legend .dot.enrich { background: #FFB800; }
   .legend .dot.derive { background: #06B6D4; }
   .legend .dot.skip { background: #8B94A8; }
+
+  /* ===================== 移动端适配 ===================== */
+  @media (max-width: 820px) {
+    html, body { overflow: auto; }
+    .topbar {
+      height: auto; flex-wrap: wrap; gap: 8px; padding: 10px 14px;
+    }
+    .topbar .brand { font-size: 15px; width: 100%; }
+    .topbar .brand .sub { display: none; }
+    .topbar .kpis { width: 100%; order: 3; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+    .kpi { padding: 5px 10px; font-size: 11px; flex-shrink: 0; }
+    .kpi b { font-size: 14px; }
+    .topbar .controls { flex-wrap: wrap; gap: 6px; width: 100%; }
+    .controls select { flex: 1 1 100%; }
+    .btn { padding: 8px 14px; font-size: 12px; }
+    .speed-ctrl { flex-shrink: 0; }
+
+    .layout { flex-direction: column; height: auto; min-height: calc(100vh - 200px); }
+    .chat-panel { flex: 1 1 auto; min-height: 60vh; border-right: none; border-bottom: 1px solid #E5E8EE; }
+    .topic-panel { flex: 1 1 auto; min-height: 40vh; }
+
+    .chat-scroll { padding: 14px 14px; }
+    .bubble { max-width: 88%; font-size: 14px; padding: 9px 13px; }
+    .msg.bot .bubble { max-width: 92%; font-size: 12.5px; }
+    .avatar { width: 32px; height: 32px; }
+    .avatar .ava-emoji { font-size: 14px; }
+    .avatar .ava-text { font-size: 12px; }
+
+    .trigger-marker, .enrich-marker, .derive-marker, .skip-marker {
+      margin: 12px 0; padding: 10px 12px; font-size: 11.5px;
+    }
+    .trigger-marker .title, .enrich-marker .title, .derive-marker .title, .skip-marker .title { font-size: 12.5px; }
+
+    .topic-card { padding: 13px; }
+    .topic-card .title { font-size: 13.5px; }
+    .topic-card .summary { font-size: 12.5px; }
+
+    .timeline { padding: 0 14px; gap: 8px; }
+    .legend { display: none; }  /* 移动端隐藏 legend，省空间 */
+    .timeline .time-display { font-size: 11px; }
+
+    .intro-card { margin: 16px 4px; padding: 18px 18px; }
+    .intro-title { font-size: 15px; }
+    .intro-body p { font-size: 13px; }
+  }
 </style>
 </head>
 <body>
@@ -389,8 +462,14 @@
       <div style="font-size:12px;color:#6d7a8f;" id="current-time">—</div>
     </div>
     <div class="chat-scroll" id="chat-scroll">
-      <div class="empty-hint" style="color:#4a5568;text-align:center;padding:60px 16px;font-style:italic;">
-        👈 请从顶部选择 case，点「开始播放」
+      <div class="intro-card">
+        <div class="intro-title">这个 Demo 演示了什么</div>
+        <div class="intro-body">
+          <p>派内话题不是「群聊摘要」——而是 AI 从群聊里识别出值得长期沉淀的「有价值讨论」，并选择合适的处理动作。</p>
+          <p><b>五类话题</b>：实用指南 · 议题判断 · 事件共振 · 真实体验 · 群体共创<br/>
+          <b>四种动作</b>：<span class="hint-pill hint-new">✨ 新建</span> <span class="hint-pill hint-enrich">🔄 丰富</span> <span class="hint-pill hint-derive">🌱 衍生</span> <span class="hint-pill hint-skip">⏸ 放弃/留池</span></p>
+          <p class="intro-tip">👈 顶部选 case → 点 <b>▶ 开始播放</b> 观看 AI 实时判定过程</p>
+        </div>
       </div>
     </div>
   </div>
@@ -466,12 +545,26 @@ async function loadCaseIndex() {
     const r = await fetch('data/index.json');
     caseIndex = await r.json();
     caseSelector.innerHTML = '';
+    // 按 group 字段（动作类型）分组渲染 optgroup
+    const groupOrder = ['新建', '丰富', '衍生', '反例'];
+    const groupEmoji = { '新建': '✨', '丰富': '🔄', '衍生': '🌱', '反例': '⏸' };
+    const grouped = {};
     caseIndex.cases.forEach(c => {
-      const opt = document.createElement('option');
-      opt.value = c.id;
-      opt.textContent = c.label;
-      if (c.status !== 'ready') opt.disabled = true;
-      caseSelector.appendChild(opt);
+      const g = c.group || '其他';
+      (grouped[g] = grouped[g] || []).push(c);
+    });
+    groupOrder.forEach(g => {
+      if (!grouped[g]) return;
+      const og = document.createElement('optgroup');
+      og.label = `${groupEmoji[g] || ''} ${g}（${grouped[g].length}）`;
+      grouped[g].forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.label;
+        if (c.status !== 'ready') opt.disabled = true;
+        og.appendChild(opt);
+      });
+      caseSelector.appendChild(og);
     });
     // 默认选第一个 ready 的
     const firstReady = caseIndex.cases.find(c => c.status === 'ready');
@@ -712,11 +805,15 @@ function renderTrigger(ev) {
 }
 
 function updateProgress() {
-  if (!currentCase) { progressFill.style.width = '0%'; progressText.textContent = '0 / 0'; return; }
-  const total = currentCase.events.length;
-  const pct = Math.round((cursor / total) * 100);
+  if (!currentCase) { progressFill.style.width = '0%'; progressText.textContent = '0 / 0 条'; return; }
+  // 用「消息条数」口径，跟左上 KPI 保持一致
+  const totalMsgs = currentCase.events.filter(e => e.t === 'msg').length;
+  const playedMsgs = counters.msg;
+  // 进度条用「事件级别」算百分比（让 trigger 也推进进度，体感更顺）
+  const totalEvents = currentCase.events.length;
+  const pct = totalEvents > 0 ? Math.round((cursor / totalEvents) * 100) : 0;
   progressFill.style.width = pct + '%';
-  progressText.textContent = `${cursor} / ${total}`;
+  progressText.textContent = `${playedMsgs} / ${totalMsgs} 条`;
 }
 
 function step() {
